@@ -6,6 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ejercicio 2</title>
+
 </head>
 
 <body>
@@ -28,56 +29,71 @@
         let context = null;
         let player1 = null;
         let player2 = null;
+        let arregloParedes = [];
         let score = 0;
         let speed = 5;
         let pause = false;
-        let color = 'blue';
+        let hormiga = new Image();
+        let hoja = new Image();
+        let walls = new Image();
+        let sonido1 = new Audio();
+        let color = 'red';
         let figura = 'circulo';
         let isPress = false;
         let x = 240;
         let y = 240;
         let direction = 'up';
-        let obstaculo1_x=70;
-        let obstaculo1_y=160;
-        let obstaculo2_x=90;
-        let obstaculo2_y=60;
-        let obstaculo3_x=440;
-        let obstaculo3_y=400;
-        let perder = false;
-        let obstaculo1 = null;
-        let obstaculo2 = null;
-        let obstaculo3 = null;
-        let obstaculos = [];
 
         function start() {
             canvas = document.getElementById('canvas');
             context = canvas.getContext('2d');
             canvas.style.background = "#ff8";
 
-            player1 = new Cuadrado(x, y, 40, 40, 'red');
-            player2 = new Cuadrado(getRandomInt(460), getRandomInt(460), 40, 40, 'red');
+            player1 = new Jugador(x, y, 40, 40, 'red', 3);
+            player2 = new Cuadrado(getRandomInt(500), getRandomInt(500), 40, 40, 'red');
+                    
+            for (let i = 0; i <= 4; i++) {
+                let obstaculo = new Cuadrado(getRandomInt(500), getRandomInt(500), 40, 40, '#808080');
+                arregloParedes.push(obstaculo);
+            }
+            hormiga.src = "hormiga.png";
+            hoja.src = "hoja.png";
+            walls.src = "walls.jpg";
+            sonido1.src = "sonidohoja.mp3";
 
             paint();
+
         }
         //  Funcion de pintar
         const paint = () => {
 
             window.requestAnimationFrame(paint);
 
-            context.fillStyle = "#57244c";
-            context.fillRect(0, 0, 500, 500);
-
-            context.fillStyle = "#ffffff";
+            context.fillStyle = "#ff8";
+            context.fillRect(0, 0, 1000, 600);
+            context.fillStyle = "#000";
             context.font = "25px Arial";
-            context.fillText("Score: " + score + "  " + "Speed: " + speed, 20, 40);
-
+            context.fillText("Score: " + score + "                                   " + "Speed: " + speed + "                                                " + "Lifes: " + player1.lifes + " ", 20, 40);
+  
             player1.color = getRandomColor();
-            player1.dibujar(context);
-
-            player2.dibujar(context);
-
-            
+ 
+            // player1.dibujar(context);
+            // player2.dibujar(context);
            
+            arregloParedes.map((obstaculo) => {
+                obstaculo.dibujar(context);
+            })
+           
+            context.drawImage(hormiga, player1.x, player1.y, 40, 40);
+            
+            context.drawImage(hoja, player2.x, player2.y, 40, 40);
+           
+            arregloParedes.map((obstaculo) => {
+                context.drawImage(walls, obstaculo.x, obstaculo.y, 40, 100);
+            });
+
+
+
             if (!pause) {
                 update();
             } else {
@@ -93,46 +109,78 @@
 
             if (direction === 'down') {
                 player1.y += speed;
-                if (player1.y > 500) {
+                if (player1.y > 600) {
                     player1.y = 0
                 }
             }
             if (direction === 'up') {
                 player1.y -= speed;
                 if (player1.y < 0) {
-                    player1.y = 500;
+                    player1.y = 600;
                 }
             }
             if (direction === 'right') {
                 player1.x += speed;
-                if (player1.x > 500) {
+                if (player1.x > 1000) {
                     player1.x = 0;
                 }
             }
             if (direction === 'left') {
                 player1.x -= speed;
                 if (player1.x < 0) {
-                    player1.x = 500;
+                    player1.x = 1000;
                 }
             }
-
+ 
 
             if (player1.se_tocan(player2)) {
-                player2.x = getRandomInt(400);
-                player2.y = getRandomInt(400);
+                player2.x = getRandomInt(900);
+                player2.y = getRandomInt(500);
                 score += 10;
-                speed += 2;
+                speed += 1;
+                sonido1.play();
             }
+            
         };
-
+        
 
         class Cuadrado {
             constructor(x, y, w, h, color) {
                 this.x = x;
                 this.y = y;
-                this.w = h;
+                this.w = w;
                 this.h = h;
                 this.color = color;
+            }
+
+            dibujar = function(context) {
+                context.fillStyle = this.color;
+                context.fillRect(this.x, this.y, this.w, this.h);
+                context.strokeRect(this.x, this.y, this.w, this.h);
+            }
+
+            se_tocan = function(target) {
+
+
+
+                if (this.x < target.x + target.w &&
+
+                    this.x + this.w > target.x &&
+
+                    this.y < target.y + target.h &&
+
+                    this.y + this.h > target.y) {
+                    return true;
+                }
+            };
+        }
+        
+        class Jugador {
+            constructor(x, y, w, h, color, lifes) {
+                this.x = x;
+                this.y = y;
+                this.w = h;
+                this.h = h;
             }
 
             dibujar = function(context) {
@@ -185,18 +233,14 @@
             if (keyCode == 68 || keyCode == 39) {
                 direction = 'right';
             }
-
             // abajo
             if (keyCode == 83 || keyCode == 40) {
                 direction = 'down';
-
             }
-
             // izquierda
             if (keyCode == 65 || keyCode == 37) {
                 direction = 'left';
             }
-
             // Pause
             if (keyCode == 32) {
                 pause = (pause) ? false : true;
@@ -215,5 +259,4 @@
         }());
     </script>
 </body>
-
 </html>
